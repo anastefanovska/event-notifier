@@ -14,9 +14,12 @@ headers = {
 }
 
 response = requests.post(API_URL, headers=headers, json={})
+print("Status:", response.status_code)
+print("Response:", response.text[:500])
 data = response.json()
 
 groups = data.get("d", [])
+print("Groups found:", len(groups))
 
 current_ids = []
 
