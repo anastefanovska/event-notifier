@@ -2,9 +2,12 @@ name: Avalon Notifier
 
 on:
   schedule:
-    - cron: "* * * * *"
+    - cron: "*/5 * * * *"
 
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   run-script:
