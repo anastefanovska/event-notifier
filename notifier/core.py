@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import html
 import logging
 from typing import Sequence
 
@@ -14,15 +15,24 @@ log = logging.getLogger(__name__)
 # paying the sum of every site's latency on each run.
 MAX_WORKERS = 8
 
+# Short Macedonian label shown in place of the (often very long) event URL.
+# Rendered as an HTML link so the message stays compact and tidy.
+LINK_LABEL = "Погледни настан"
+
 
 def _format_message(source: Source, event: Event) -> str:
-    head = f"🎟️ {event.title}" if event.title else f"🎟️ New event on {source.display_name}"
+    # Telegram is sent with parse_mode=HTML, so escape any user-facing text that
+    # could contain &, < or > and break the markup.
+    if event.title:
+        lines = [f"🎟️ {html.escape(event.title)}"]
+    else:
+        lines = [f"🎟️ Нов настан на {html.escape(source.display_name)}"]
     if event.date:
-        head += f" — {event.date}"
-    lines = [head]
+        lines.append(f"📅 {html.escape(event.date)}")
     if event.venue:
-        lines.append(f"📍 {event.venue}")
-    lines.append(f"🔗 {event.url}")
+        lines.append(f"📍 {html.escape(event.venue)}")
+    url = html.escape(event.url, quote=True)
+    lines.append(f'🔗 <a href="{url}">{LINK_LABEL}</a>')
     return "\n".join(lines)
 
 
