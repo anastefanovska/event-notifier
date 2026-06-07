@@ -9,7 +9,17 @@ from .telegram import Telegram
 
 
 def _format_message(source: Source, event: Event) -> str:
-    return f"🎟️ New event on {source.display_name}\n{event.url}"
+    title = event.title or "New event"
+    lines = [f"🎟️ {title}"]
+    if event.date:
+        lines.append(f"📅 {event.date}")
+    if event.venue:
+        lines.append(f"📍 {event.venue}")
+    if event.price:
+        lines.append(f"💵 {event.price}")
+    lines.append(f"🏷️ {source.display_name}")
+    lines.append(event.url)
+    return "\n".join(lines)
 
 
 def run(sources: Sequence[Source], state: State, telegram: Telegram) -> None:
