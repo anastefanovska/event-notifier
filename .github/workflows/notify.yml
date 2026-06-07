@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   run-script:
@@ -22,19 +22,22 @@ jobs:
         with:
           python-version: "3.11"
 
+      # Restore the seen-events state from the previous run. The key is unique
+      # per run so the cache is always (re)written at job end with the latest
+      # state.json, while restore-keys picks up the most recent prior cache.
+      - name: Restore state
+        uses: actions/cache@v4
+        with:
+          path: state.json
+          key: notifier-state-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            notifier-state-
+
       - name: Install dependencies
-        run: pip install requests
+        run: pip install -r requirements.txt
 
       - name: Run notifier
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python check.py
-
-      - name: Commit state
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add state.json
-          git commit -m "update seen events" || echo "No changes"
-          git push
+        run: python -m notifier

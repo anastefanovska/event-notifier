@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "avalon-notifier"
+version = "1.0.0"
+description = "Telegram notifier for new events across Macedonian ticketing sites."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["requests>=2.31,<3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+avalon-notifier = "notifier.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["notifier*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -1,52 +1,86 @@
 from __future__ import annotations
 
-import traceback
+import concurrent.futures
+import logging
 from typing import Sequence
 
 from .source import Event, Source
 from .state import State
 from .telegram import Telegram
 
+log = logging.getLogger(__name__)
+
+# Sources are independent network calls, so fetch them concurrently rather than
+# paying the sum of every site's latency on each run.
+MAX_WORKERS = 8
+
 
 def _format_message(source: Source, event: Event) -> str:
-    title = event.title or "New event"
-    lines = [f"🎟️ {title}"]
+    head = f"🎟️ {event.title}" if event.title else f"🎟️ New event on {source.display_name}"
     if event.date:
-        lines.append(f"📅 {event.date}")
+        head += f" — {event.date}"
+    lines = [head]
     if event.venue:
         lines.append(f"📍 {event.venue}")
-    if event.price:
-        lines.append(f"💵 {event.price}")
-    lines.append(f"🏷️ {source.display_name}")
-    lines.append(event.url)
+    lines.append(f"🔗 {event.url}")
     return "\n".join(lines)
 
 
-def run(sources: Sequence[Source], state: State, telegram: Telegram) -> None:
+def _fetch(source: Source) -> list[Event]:
+    return list(source.fetch())
+
+
+def run(sources: Sequence[Source], state: State, telegram: Telegram) -> int:
+    """Fetch every source, notify on new events, and persist state.
+
+    Returns the number of sources that failed (fetch error or notification
+    error) so the caller can signal a non-zero exit and surface the failure
+    in CI instead of silently passing.
+    """
+    fetched: dict[str, list[Event]] = {}
+    failures = 0
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+        future_to_source = {pool.submit(_fetch, source): source for source in sources}
+        for future in concurrent.futures.as_completed(future_to_source):
+            source = future_to_source[future]
+            try:
+                fetched[source.key] = future.result()
+            except Exception:
+                failures += 1
+                log.exception("[%s] fetch failed", source.key)
+
+    # Process in declared order for deterministic, readable logs.
     for source in sources:
-        try:
-            events = list(source.fetch())
-        except Exception:
-            print(f"[{source.key}] fetch failed:")
-            traceback.print_exc()
+        events = fetched.get(source.key)
+        if events is None:
+            # Fetch failed; leave this source's state untouched so we don't
+            # forget what we've seen and re-notify everything next run.
             continue
 
-        current_ids = [e.id for e in events]
+        current_ids = [event.id for event in events]
         first_run = not state.is_initialised(source.key)
         seen = state.seen(source.key)
-        new_events = [e for e in events if e.id not in seen]
+        new_events = [event for event in events if event.id not in seen]
 
         if first_run:
-            print(f"[{source.key}] first run — recording {len(current_ids)} events, no notifications")
+            log.info(
+                "[%s] first run — recording %d events, no notifications",
+                source.key,
+                len(current_ids),
+            )
         else:
             for event in new_events:
-                print(f"[{source.key}] new event: {event.url}")
+                log.info("[%s] new event: %s", source.key, event.url)
                 try:
                     telegram.send(_format_message(source, event))
                 except Exception:
-                    print(f"[{source.key}] telegram send failed for {event.url}:")
-                    traceback.print_exc()
+                    failures += 1
+                    log.exception(
+                        "[%s] telegram send failed for %s", source.key, event.url
+                    )
 
         state.replace(source.key, current_ids)
 
     state.save()
+    return failures

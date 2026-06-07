@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
+from .. import dates
 from ..http import DEFAULT_TIMEOUT, session
 from ..source import Event
 
@@ -24,17 +25,6 @@ def _venue(raw: dict) -> str | None:
     return None
 
 
-def _price(raw: dict) -> str | None:
-    amount = raw.get("PriceCurrencySecond") or raw.get("PriceCurrencyFirst")
-    try:
-        value = float(amount)
-    except (TypeError, ValueError):
-        return None
-    if value <= 0:
-        return None
-    return f"{value:.0f} ден"
-
-
 def _walk_events(data: object) -> Iterator[dict]:
     if isinstance(data, dict):
         if str(data.get("__type", "")).endswith(EVENT_TYPE_SUFFIX):
@@ -45,6 +35,36 @@ def _walk_events(data: object) -> Iterator[dict]:
     elif isinstance(data, list):
         for item in data:
             yield from _walk_events(item)
+
+
+def parse_grouped_events(payload: object, event_url_template: str) -> list[Event]:
+    """Turn an eTickets ASMX response payload into events.
+
+    ``event_url_template`` must contain a ``{id}`` placeholder. Pure function
+    (no network) so it can be exercised against captured fixtures.
+    """
+    root = payload.get("d") if isinstance(payload, dict) else payload
+
+    seen_ids: set[str] = set()
+    events: list[Event] = []
+    for raw in _walk_events(root):
+        raw_id = raw.get("Id")
+        if raw_id is None:
+            continue
+        event_id = str(raw_id)
+        if event_id in seen_ids:
+            continue
+        seen_ids.add(event_id)
+        events.append(
+            Event(
+                id=event_id,
+                url=event_url_template.format(id=event_id),
+                title=_clean(raw.get("NameFirst")),
+                date=dates.from_dotnet(raw.get("DateTime")) or dates.from_numeric(raw.get("Date")),
+                venue=_venue(raw),
+            )
+        )
+    return events
 
 
 def fetch_grouped_events(api_url: str, event_url_template: str, page_size: int = 50) -> list[Event]:
@@ -62,24 +82,4 @@ def fetch_grouped_events(api_url: str, event_url_template: str, page_size: int =
         response.raise_for_status()
         payload = response.json()
 
-    seen_ids: set[str] = set()
-    events: list[Event] = []
-    for raw in _walk_events(payload.get("d")):
-        raw_id = raw.get("Id")
-        if raw_id is None:
-            continue
-        event_id = str(raw_id)
-        if event_id in seen_ids:
-            continue
-        seen_ids.add(event_id)
-        events.append(
-            Event(
-                id=event_id,
-                url=event_url_template.format(id=event_id),
-                title=_clean(raw.get("NameFirst")),
-                date=_clean(raw.get("Date")),
-                venue=_venue(raw),
-                price=_price(raw),
-            )
-        )
-    return events
+    return parse_grouped_events(payload, event_url_template)

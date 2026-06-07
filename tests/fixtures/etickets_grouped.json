@@ -1,0 +1,33 @@
+{
+  "d": {
+    "__type": "GroupedEventsModel",
+    "Groups": [
+      {
+        "__type": "GroupModel",
+        "Name": "Concerts",
+        "Events": [
+          {
+            "__type": "ETickets.EventModel",
+            "Id": 12345,
+            "NameFirst": "Concert A",
+            "DateTime": "/Date(1781895600000)/",
+            "ObjectMap": { "__type": "ObjectModel", "NameFirst": "Arena Skopje" }
+          },
+          {
+            "__type": "ETickets.EventModel",
+            "Id": 67890,
+            "NameFirst": "Concert B",
+            "Date": "28.11.2026",
+            "Object": { "__type": "ObjectModel", "NameFirst": "Hall 2" }
+          },
+          {
+            "__type": "ETickets.EventModel",
+            "Id": 12345,
+            "NameFirst": "Concert A (duplicate)",
+            "DateTime": "/Date(1781895600000)/"
+          }
+        ]
+      }
+    ]
+  }
+}
