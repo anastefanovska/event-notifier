@@ -9,7 +9,8 @@
     "1829",
     "1830",
     "1831",
-    "1832"
+    "1832",
+    "1834"
   ],
   "karti": [
     "agotango-the-echo-of-the-tango-story.nspx",
@@ -43,9 +44,11 @@
     "tea-tairovicc.nspx",
     "teatar-za-deca-i-mladinci.nspx",
     "turski-teatar.nspx",
+    "vojdan-cernodrinski-60-godini.nspx",
     "voyage-relja-nucci-02-08-2026.nspx",
     "yii-limani.nspx",
-    "young-dadi.nspx"
+    "young-dadi.nspx",
+    "zdravko-oli.nspx"
   ],
   "kupikarta": [
     "5726",
@@ -59,6 +62,7 @@
     "5744",
     "5745",
     "5748",
+    "5749",
     "5750",
     "5751",
     "5752",
@@ -77,7 +81,8 @@
     "5766",
     "5767",
     "5768",
-    "5769"
+    "5769",
+    "5770"
   ],
   "mktickets": [
     "agotango-the-echo-of-the-tango-story",
@@ -85,6 +90,7 @@
     "arhangel",
     "autechre",
     "cdafestival",
+    "d-festival-2026",
     "dd",
     "ezhel-live-in-europe-2026",
     "festivalski-komplet-offest-2026",
@@ -108,12 +114,16 @@
     "vlatko-miladinoski",
     "vrn",
     "when-in-krusevo-2026",
-    "x-dance-festival-2026"
+    "x-dance-festival-2026",
+    "za-nas-pocnuva-zivot"
   ],
   "ticketx": [
     "2bona-prilep",
+    "2bona-veles",
     "alen-islamovic-heraklea",
-    "burak-yeter-arm"
+    "burak-yeter-arm",
+    "memorija",
+    "slatkar-dvabona-kumanovo"
   ],
   "wayin": [
     "30-godini-nokaut",
@@ -133,6 +143,8 @@
     "mjuzikl-kao-kakao-3-juni",
     "numb-tribute-to-pink-floyd",
     "piknik-u-pelince-2026",
-    "s-o-s-festival-bitola"
+    "s-o-s-festival-bitola",
+    "senidah",
+    "vesna-zmijanac-golden-tour"
   ]
 }
