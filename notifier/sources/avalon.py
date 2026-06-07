@@ -10,6 +10,7 @@ class AvalonSource:
 
     API_URL = "https://avalonbooking.mk/services/exportdata.asmx/GetGroupedEvents"
     EVENT_URL = "https://avalonbooking.mk/event-details-mk.nspx?eventid={id}"
+    IMAGE_BASE = "https://avalonbooking.mk"
 
     def fetch(self) -> list[Event]:
-        return fetch_grouped_events(self.API_URL, self.EVENT_URL)
+        return fetch_grouped_events(self.API_URL, self.EVENT_URL, self.IMAGE_BASE)

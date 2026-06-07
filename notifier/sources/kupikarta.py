@@ -10,6 +10,7 @@ class KupiKartaSource:
 
     API_URL = "https://kupikarta.com/services/exportdata.asmx/GetGroupedEvents"
     EVENT_URL = "https://kupikarta.com/tickets.nspx?eventid={id}"
+    IMAGE_BASE = "https://kupikarta.com"
 
     def fetch(self) -> list[Event]:
-        return fetch_grouped_events(self.API_URL, self.EVENT_URL)
+        return fetch_grouped_events(self.API_URL, self.EVENT_URL, self.IMAGE_BASE)

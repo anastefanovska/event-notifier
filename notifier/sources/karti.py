@@ -25,6 +25,8 @@ EVENT_CARD_RE = re.compile(
 TITLE_RE = re.compile(r'k-event-list-event-title[^"]*">(.*?)</h2>', re.IGNORECASE | re.DOTALL)
 DATE_RE = re.compile(r'k-events-event-date">(.*?)</div>', re.IGNORECASE | re.DOTALL)
 VENUE_RE = re.compile(r'k-events-venue-details">(.*?)</div>', re.IGNORECASE | re.DOTALL)
+# The poster <img> has an unquoted, site-relative src, e.g. src=content/foo.jpg?ver001
+IMG_RE = re.compile(r"<img[^>]+src=([^\s>\"']+)", re.IGNORECASE)
 
 
 def _text(fragment: str | None) -> str | None:
@@ -39,6 +41,16 @@ def _text(fragment: str | None) -> str | None:
 def _match(pattern: re.Pattern[str], body: str) -> str | None:
     found = pattern.search(body)
     return _text(found.group(1)) if found else None
+
+
+def _image(body: str) -> str | None:
+    found = IMG_RE.search(body)
+    if not found:
+        return None
+    src = found.group(1).strip("\"' ")
+    if src.startswith(("http://", "https://")):
+        return src
+    return f"{BASE_URL}/{src.lstrip('/')}"
 
 
 def parse_events(html: str) -> list[Event]:
@@ -58,6 +70,7 @@ def parse_events(html: str) -> list[Event]:
                 title=_match(TITLE_RE, body),
                 date=dates.from_named(_match(DATE_RE, body)),
                 venue=_match(VENUE_RE, body),
+                image=_image(body),
             )
         )
     return events

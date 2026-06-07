@@ -21,7 +21,7 @@ def _read(name: str) -> str:
 def test_etickets_asmx_parses_and_dedupes():
     payload = json.loads(_read("etickets_grouped.json"))
     events = _etickets_asmx.parse_grouped_events(
-        payload, "https://example.mk/event?id={id}"
+        payload, "https://example.mk/event?id={id}", "https://example.mk"
     )
 
     assert [e.id for e in events] == ["12345", "67890"]  # duplicate dropped
@@ -31,6 +31,9 @@ def test_etickets_asmx_parses_and_dedupes():
     assert first.title == "Concert A"
     assert first.date == "19.06.2026"  # from the .NET /Date(...)/ epoch
     assert first.venue == "Arena Skopje"
+    assert first.image == "https://example.mk/images/event/concert_a.jpg"
+
+    assert events[1].image is None  # no Image field -> None
 
     second = events[1]
     assert second.date == "28.11.2026"  # from the numeric Date field
@@ -47,6 +50,7 @@ def test_karti_parses_cards_and_dedupes():
     assert aoki.title == "Steve Aoki"
     assert aoki.date == "05–12.06.2026"  # day range, mixed-language month
     assert aoki.venue == "Boris Trajkovski"
+    assert aoki.image == "https://www.karti.com.mk/content/steve-aoki.jpg?ver001"
 
     # Unrecognised "month" text yields no date rather than garbage.
     assert events[1].date is None
@@ -62,6 +66,7 @@ def test_mktickets_parses_spans():
     assert show.title == "Some Show"
     assert show.date == "26.06.2026"
     assert show.venue == "Skopje"
+    assert show.image == "https://mktickets.mk/wp-content/uploads/some-show.png"
 
 
 def test_ticketx_parses_next_data():
@@ -74,6 +79,7 @@ def test_ticketx_parses_next_data():
     assert one.title == "Event One - SKOPJE"  # trailing date stripped
     assert one.date == "15.05.2026"
     assert one.venue == "Arena X"
+    assert one.image == "https://api.ticketx.com.mk/images/event-one.jpg"
 
     # arena can be a bare string instead of an object.
     assert events[1].venue == "Open Air Theatre"
@@ -95,5 +101,6 @@ def test_wayin_parses_next_data():
     assert x.title == "Show X"
     assert x.date == "20.07.2026"
     assert x.venue == "Ohrid"
+    assert x.image == "https://content.wayin.mk/abc/images/show-x.jpg"
 
     assert events[1].date == "01.09.2026"  # DD-MM-YYYY normalised

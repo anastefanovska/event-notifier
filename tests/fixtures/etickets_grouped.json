@@ -11,6 +11,7 @@
             "Id": 12345,
             "NameFirst": "Concert A",
             "DateTime": "/Date(1781895600000)/",
+            "Image": "images/event/concert_a.jpg",
             "ObjectMap": { "__type": "ObjectModel", "NameFirst": "Arena Skopje" }
           },
           {

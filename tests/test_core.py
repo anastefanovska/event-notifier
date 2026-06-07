@@ -25,7 +25,7 @@ class FakeTelegram:
         self.sent = []
         self._fail = fail
 
-    def send(self, text):
+    def send(self, text, image=None):
         if self._fail:
             raise RuntimeError("boom")
         self.sent.append(text)

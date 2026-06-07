@@ -27,6 +27,13 @@ def _clean(value: object) -> str | None:
     return text or None
 
 
+def _image(product: dict) -> str | None:
+    thumbnail = product.get("thumbnail")
+    if isinstance(thumbnail, dict):
+        return _clean(thumbnail.get("url"))
+    return None
+
+
 def parse_next_data(html: str) -> list[Event]:
     match = NEXT_DATA_RE.search(html)
     if not match:
@@ -50,6 +57,7 @@ def parse_next_data(html: str) -> list[Event]:
                 title=_clean(product.get("title")),
                 date=dates.from_numeric(product.get("event_date_period")),
                 venue=_clean(product.get("event_location")),
+                image=_image(product),
             )
         )
     return events

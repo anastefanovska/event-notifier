@@ -83,7 +83,7 @@ def run(sources: Sequence[Source], state: State, telegram: Telegram) -> int:
             for event in new_events:
                 log.info("[%s] new event: %s", source.key, event.url)
                 try:
-                    telegram.send(_format_message(source, event))
+                    telegram.send(_format_message(source, event), image=event.image)
                 except Exception:
                     failures += 1
                     log.exception(

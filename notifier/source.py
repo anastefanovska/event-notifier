@@ -11,6 +11,7 @@ class Event:
     title: str | None = None
     date: str | None = None
     venue: str | None = None
+    image: str | None = None
 
 
 class Source(Protocol):

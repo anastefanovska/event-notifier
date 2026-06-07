@@ -20,6 +20,8 @@ EVENT_CARD_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 SPAN_RE = re.compile(r"<span>(.*?)</span>", re.IGNORECASE | re.DOTALL)
+# The poster <img> sits in the .poster-link before the <h3>; src is an absolute URL.
+IMG_RE = re.compile(r'<img[^>]+src="(https?://[^"]+)"', re.IGNORECASE)
 
 
 def _text(fragment: str | None) -> str | None:
@@ -57,6 +59,7 @@ def parse_events(html: str) -> list[Event]:
         seen_urls.add(url)
         slug = url.rsplit("/event/", 1)[-1].strip("/")
         spans = SPAN_RE.findall(match.group(4))
+        img = IMG_RE.search(match.group(1))
         events.append(
             Event(
                 id=slug,
@@ -64,6 +67,7 @@ def parse_events(html: str) -> list[Event]:
                 title=_text(match.group(3)),
                 date=_date(spans),
                 venue=_venue(spans),
+                image=img.group(1) if img else None,
             )
         )
     return events

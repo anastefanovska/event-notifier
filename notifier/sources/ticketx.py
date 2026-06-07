@@ -9,6 +9,8 @@ from ..http import DEFAULT_TIMEOUT, session
 
 PAGE_URL = "https://ticketx.com.mk/"
 BASE_URL = "https://ticketx.com.mk"
+# Posters are served from the API host, not the front-end domain.
+IMAGE_BASE = "https://api.ticketx.com.mk"
 
 # ticketx.com.mk is a Next.js app; the home page embeds the full event list as
 # JSON in the __NEXT_DATA__ script tag, grouped into sliders/sections.
@@ -46,6 +48,15 @@ def _venue(event: dict) -> str | None:
     return _clean(arena)
 
 
+def _image(event: dict) -> str | None:
+    path = _clean(event.get("image"))
+    if not path:
+        return None
+    if path.startswith(("http://", "https://")):
+        return path
+    return f"{IMAGE_BASE}/{path.lstrip('/')}"
+
+
 def parse_next_data(html: str) -> list[Event]:
     match = NEXT_DATA_RE.search(html)
     if not match:
@@ -70,6 +81,7 @@ def parse_next_data(html: str) -> list[Event]:
                     title=_title(event.get("title")),
                     date=dates.from_iso(event.get("start_date")),
                     venue=_venue(event),
+                    image=_image(event),
                 )
             )
     return events
