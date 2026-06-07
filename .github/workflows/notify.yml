@@ -1,4 +1,4 @@
-name: Avalon Notifier
+name: Event Notifier
 
 on:
   schedule:
